@@ -1,7 +1,8 @@
-# p2wpkh-in-p2sh
-An excruciatingly slow script which can be used for SegWit wallet recovery.
+# SegWit P2SH
 
-This script assumes you know the BIP39 seed phrase for a p2wpkh-in-p2sh (aka segwit or `m/49'/0'/0'`) wallet, but have forgotten part of the password.  Works with Trezor-style wallets.  Each test wallet takes approximately 1 second currently, so only makes sense to use if you have no other option or if you think you can guess the password with few tries.
+A script which can be used for SegWit wallet recovery.
+
+This script assumes you know the [BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) seed phrase for a p2wpkh-in-p2sh (aka [BIP49](https://github.com/bitcoin/bips/blob/master/bip-0049.mediawiki) segwit defined by the [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) path: `m/49'/0'/0'`) wallet, but have forgotten part of the password.  Works with Trezor-style wallets.  Each test wallet takes approximately 1 second currently, so only makes sense to use if you have no other option or if you think you can guess the password with few tries.
 
 ## Requirements
 
@@ -32,12 +33,12 @@ You'll have to create your own `tokens.txt` with tokens / patterns which you bel
 
 Script will generate virtual wallets with your `seed_words` + the password guesses and then check if the first address generated matches the expected `address` configured above.  You can run this command to see an example with the defaults:
 
-    cat passwords.txt | ./test-pw.py 2> /dev/null
+    cat passwords.txt | ./test-pw.py
 
 
 You can of course do fancy shell stuff like this to prefix every password with an `@` symbol:
 
-    cat passwords.txt | sed 's/\(.*\)/@\1/' | ./test-pw.py 2> /dev/null
+    cat passwords.txt | sed 's/\(.*\)/@\1/' | ./test-pw.py
 
 
 ### TODO:

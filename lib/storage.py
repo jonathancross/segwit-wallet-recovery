@@ -33,7 +33,7 @@ import pbkdf2, hmac, hashlib
 import base64
 import zlib
 
-from .util import PrintError, profiler
+from .util import PrintError
 from .plugins import run_hook, plugin_loaders
 from .keystore import bip44_derivation
 from . import bitcoin
@@ -60,7 +60,6 @@ def multisig_type(wallet_type):
 class WalletStorage(PrintError):
 
     def __init__(self, path, manual_upgrades=False):
-        self.print_error("wallet path", path)
         self.manual_upgrades = manual_upgrades
         self.lock = threading.RLock()
         self.data = {}
@@ -160,7 +159,7 @@ class WalletStorage(PrintError):
                 self.modified = True
                 self.data.pop(key)
 
-    @profiler
+
     def write(self):
         with self.lock:
             self._write()

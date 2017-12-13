@@ -38,7 +38,7 @@ from functools import partial
 from collections import defaultdict
 
 from .i18n import _
-from .util import NotEnoughFunds, PrintError, UserCancelled, profiler, format_satoshis
+from .util import NotEnoughFunds, PrintError, UserCancelled,  format_satoshis
 
 from .bitcoin import *
 from .version import *
@@ -213,7 +213,7 @@ class Abstract_Wallet(PrintError):
     def get_master_public_key(self):
         return None
 
-    @profiler
+
     def load_transactions(self):
         self.txi = self.storage.get('txi', {})
         self.txo = self.storage.get('txo', {})
@@ -228,7 +228,7 @@ class Abstract_Wallet(PrintError):
                 self.print_error("removing unreferenced tx", tx_hash)
                 self.transactions.pop(tx_hash)
 
-    @profiler
+
     def save_transactions(self, write=False):
         with self.transaction_lock:
             tx = {}
@@ -254,7 +254,7 @@ class Abstract_Wallet(PrintError):
             self.history = {}
             self.tx_addr_hist = {}
 
-    @profiler
+
     def build_reverse_history(self):
         self.tx_addr_hist = {}
         for addr, hist in self.history.items():
@@ -263,7 +263,7 @@ class Abstract_Wallet(PrintError):
                 s.add(addr)
                 self.tx_addr_hist[tx_hash] = s
 
-    @profiler
+
     def check_history(self):
         save = False
         mine_addrs = list(filter(lambda k: self.is_mine(self.history[k]), self.history.keys()))
