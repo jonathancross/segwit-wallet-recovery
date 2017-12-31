@@ -47,3 +47,10 @@ You can of course do fancy shell stuff like this to prefix every password with a
 * Remove unused code / libraries (there is a lot)
 * Optimize!  Library code was just copy / pasted from Electrum repo
 * Consider improving `btcrecover` to support segwit + p2sh
+
+
+## License
+
+See [LICENSE](LICENSE).
+
+This project was assembled with code taken from Electrum; those are Copyright © The Electrum Developers under the MIT License
