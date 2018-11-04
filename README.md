@@ -4,9 +4,11 @@ A script which can be used for SegWit wallet recovery.
 
 This script assumes you know the [BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) seed phrase for a p2wpkh-in-p2sh (aka [BIP49](https://github.com/bitcoin/bips/blob/master/bip-0049.mediawiki) segwit defined by the [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) path: `m/49'/0'/0'`) wallet, but have forgotten part of the password.  Works with Trezor-style wallets.  Each test wallet takes approximately 1 second currently, so only makes sense to use if you have no other option or if you think you can guess the password with few tries.
 
-## Requirements
+## Requirements (tested with Python 3.7.0):
 
-    pip install -r requirements.txt
+    virtualenv env
+    source env/bin/activate
+    pip3 install -r requirements.txt
 
 ## Configuration
 
