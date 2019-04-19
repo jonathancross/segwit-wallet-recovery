@@ -37,12 +37,6 @@ import os
 import math
 import hashlib
 
-from .pem import *
-
-
-def SHA1(x):
-    return hashlib.sha1(x).digest()
-
 
 # **************************************************************************
 # PRNG Functions
@@ -57,9 +51,6 @@ def getRandomBytes(howMany):
     b = bytearray(os.urandom(howMany))
     assert(len(b) == howMany)
     return b
-
-prngName = "os.urandom"
-
 
 # **************************************************************************
 # Converter Functions
@@ -89,26 +80,7 @@ def numberToByteArray(n, howManyBytes=None):
         n >>= 8
     return b
 
-def mpiToNumber(mpi): #mpi is an openssl-format bignum string
-    if (ord(mpi[4]) & 0x80) !=0: #Make sure this is a positive number
-        raise AssertionError()
-    b = bytearray(mpi[4:])
-    return bytesToNumber(b)
 
-def numberToMPI(n):
-    b = numberToByteArray(n)
-    ext = 0
-    #If the high-order bit is going to be set,
-    #add an extra byte of zeros
-    if (numBits(n) & 0x7)==0:
-        ext = 1
-    length = numBytes(n) + ext
-    b = bytearray(4+ext) + b
-    b[0] = (length >> 24) & 0xFF
-    b[1] = (length >> 16) & 0xFF
-    b[2] = (length >> 8) & 0xFF
-    b[3] = length & 0xFF
-    return bytes(b)
 
 
 # **************************************************************************
@@ -125,7 +97,6 @@ def numBits(n):
      '8':4, '9':4, 'a':4, 'b':4,
      'c':4, 'd':4, 'e':4, 'f':4,
      }[s[0]]
-    return int(math.floor(math.log(n, 2))+1)
 
 def numBytes(n):
     if n==0:
@@ -246,31 +217,6 @@ def getRandomPrime(bits, display=False):
             return p
 
 #Unused at the moment...
-def getRandomSafePrime(bits, display=False):
-    if bits < 10:
-        raise AssertionError()
-    #The 1.5 ensures the 2 MSBs are set
-    #Thus, when used for p,q in RSA, n will have its MSB set
-    #
-    #Since 30 is lcm(2,3,5), we'll set our test numbers to
-    #29 % 30 and keep them there
-    low = (2 ** (bits-2)) * 3//2
-    high = (2 ** (bits-1)) - 30
-    q = getRandomNumber(low, high)
-    q += 29 - (q % 30)
-    while 1:
-        if display: print(".", end=' ')
-        q += 30
-        if (q >= high):
-            q = getRandomNumber(low, high)
-            q += 29 - (q % 30)
-        #Ideas from Tom Wu's SRP code
-        #Do trial division on p and q before Rabin-Miller
-        if isPrime(q, 0, display=display):
-            p = (2 * q) + 1
-            if isPrime(p, display=display):
-                if isPrime(q, display=display):
-                    return p
 
 
 class RSAKey(object):
@@ -299,46 +245,6 @@ class RSAKey(object):
     def hasPrivateKey(self):
         return self.d != 0
 
-    def hashAndSign(self, bytes):
-        """Hash and sign the passed-in bytes.
-
-        This requires the key to have a private component.  It performs
-        a PKCS1-SHA1 signature on the passed-in data.
-
-        @type bytes: str or L{bytearray} of unsigned bytes
-        @param bytes: The value which will be hashed and signed.
-
-        @rtype: L{bytearray} of unsigned bytes.
-        @return: A PKCS1-SHA1 signature on the passed-in data.
-        """
-        hashBytes = SHA1(bytearray(bytes))
-        prefixedHashBytes = self._addPKCS1SHA1Prefix(hashBytes)
-        sigBytes = self.sign(prefixedHashBytes)
-        return sigBytes
-
-    def hashAndVerify(self, sigBytes, bytes):
-        """Hash and verify the passed-in bytes with the signature.
-
-        This verifies a PKCS1-SHA1 signature on the passed-in data.
-
-        @type sigBytes: L{bytearray} of unsigned bytes
-        @param sigBytes: A PKCS1-SHA1 signature.
-
-        @type bytes: str or L{bytearray} of unsigned bytes
-        @param bytes: The value which will be hashed and verified.
-
-        @rtype: bool
-        @return: Whether the signature matches the passed-in data.
-        """
-        hashBytes = SHA1(bytearray(bytes))
-        
-        # Try it with/without the embedded NULL
-        prefixedHashBytes1 = self._addPKCS1SHA1Prefix(hashBytes, False)
-        prefixedHashBytes2 = self._addPKCS1SHA1Prefix(hashBytes, True)
-        result1 = self.verify(sigBytes, prefixedHashBytes1)
-        result2 = self.verify(sigBytes, prefixedHashBytes2)
-        return (result1 or result2)
-
     def sign(self, bytes):
         """Sign the passed-in bytes.
 
@@ -361,30 +267,6 @@ class RSAKey(object):
         sigBytes = numberToByteArray(c, numBytes(self.n))
         return sigBytes
 
-    def verify(self, sigBytes, bytes):
-        """Verify the passed-in bytes with the signature.
-
-        This verifies a PKCS1 signature on the passed-in data.
-
-        @type sigBytes: L{bytearray} of unsigned bytes
-        @param sigBytes: A PKCS1 signature.
-
-        @type bytes: L{bytearray} of unsigned bytes
-        @param bytes: The value which will be verified.
-
-        @rtype: bool
-        @return: Whether the signature matches the passed-in data.
-        """
-        if len(sigBytes) != numBytes(self.n):
-            return False
-        paddedBytes = self._addPKCS1Padding(bytes, 1)
-        c = bytesToNumber(sigBytes)
-        if c >= self.n:
-            return False
-        m = self._rawPublicKeyOp(c)
-        checkBytes = numberToByteArray(m, numBytes(self.n))
-        return checkBytes == paddedBytes
-
     def encrypt(self, bytes):
         """Encrypt the passed-in bytes.
 
@@ -404,64 +286,9 @@ class RSAKey(object):
         encBytes = numberToByteArray(c, numBytes(self.n))
         return encBytes
 
-    def decrypt(self, encBytes):
-        """Decrypt the passed-in bytes.
-
-        This requires the key to have a private component.  It performs
-        PKCS1 decryption of the passed-in data.
-
-        @type encBytes: L{bytearray} of unsigned bytes
-        @param encBytes: The value which will be decrypted.
-
-        @rtype: L{bytearray} of unsigned bytes or None.
-        @return: A PKCS1 decryption of the passed-in data or None if
-        the data is not properly formatted.
-        """
-        if not self.hasPrivateKey():
-            raise AssertionError()
-        if len(encBytes) != numBytes(self.n):
-            return None
-        c = bytesToNumber(encBytes)
-        if c >= self.n:
-            return None
-        m = self._rawPrivateKeyOp(c)
-        decBytes = numberToByteArray(m, numBytes(self.n))
-        #Check first two bytes
-        if decBytes[0] != 0 or decBytes[1] != 2:
-            return None
-        #Scan through for zero separator
-        for x in range(1, len(decBytes)-1):
-            if decBytes[x]== 0:
-                break
-        else:
-            return None
-        return decBytes[x+1:] #Return everything after the separator
-
-
-
-
     # **************************************************************************
     # Helper Functions for RSA Keys
     # **************************************************************************
-
-    def _addPKCS1SHA1Prefix(self, bytes, withNULL=True):
-        # There is a long history of confusion over whether the SHA1 
-        # algorithmIdentifier should be encoded with a NULL parameter or 
-        # with the parameter omitted.  While the original intention was 
-        # apparently to omit it, many toolkits went the other way.  TLS 1.2
-        # specifies the NULL should be included, and this behavior is also
-        # mandated in recent versions of PKCS #1, and is what tlslite has
-        # always implemented.  Anyways, verification code should probably 
-        # accept both.  However, nothing uses this code yet, so this is 
-        # all fairly moot.
-        if not withNULL:
-            prefixBytes = bytearray(\
-            [0x30,0x1f,0x30,0x07,0x06,0x05,0x2b,0x0e,0x03,0x02,0x1a,0x04,0x14])            
-        else:
-            prefixBytes = bytearray(\
-            [0x30,0x21,0x30,0x09,0x06,0x05,0x2b,0x0e,0x03,0x02,0x1a,0x05,0x00,0x04,0x14])            
-        prefixedBytes = prefixBytes + bytes
-        return prefixedBytes
 
     def _addPKCS1Padding(self, bytes, blockType):
         padLength = (numBytes(self.n) - (len(bytes)+3))
@@ -522,8 +349,6 @@ class RSAKey(object):
         m = powMod(c, self.e, self.n)
         return m
 
-    def acceptsPassword(self):
-        return False
 
     def generate(bits):
         key = RSAKey()

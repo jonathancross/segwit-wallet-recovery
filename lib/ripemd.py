@@ -37,9 +37,6 @@
 ## * ftp://ftp.rsasecurity.com/pub/cryptobytes/crypto3n2.pdf
 ## */
 
-#block_size = 1
-digest_size = 20
-digestsize = 20
 
 class RIPEMD160:
     """Return a new RIPEMD160 object. An optional string argument
