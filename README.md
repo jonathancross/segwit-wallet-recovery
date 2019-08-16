@@ -1,6 +1,6 @@
-# SegWit P2SH
+# Pass phrase tester for BIP39 SegWit-P2SH wallets
 
-A script which can be used for SegWit wallet recovery.
+A script which can be used for SegWit bitcoin wallet recovery.
 
 This script assumes you know the [BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) seed phrase for a p2wpkh-in-p2sh (aka [BIP49](https://github.com/bitcoin/bips/blob/master/bip-0049.mediawiki) segwit defined by the [BIP32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki) path: `m/49'/0'/0'`) wallet, but have forgotten part of the password.  Works with Trezor-style wallets.  Each test wallet takes approximately 1 second currently, so only makes sense to use if you have no other option or if you think you can guess the password with few tries.
 
@@ -12,6 +12,8 @@ This script assumes you know the [BIP39](https://github.com/bitcoin/bips/blob/ma
 
 ## Configuration
 
+Open `test-pw.py` to configure with your wallet info.
+
 Replace these values with yours:
 
 * `SEED_WORDS` (eg 'final round trust era topic march brain envelope spoon minimum bunker start')
@@ -19,7 +21,7 @@ Replace these values with yours:
 * `NUM_OF_ADDRESSES_TO_GENERATE` (eg 5)
 
 Then open [passwords.txt](passwords.txt) and add your passwords guesses (one per line).
-I recommend using [btcrecover](https://github.com/gurnec/btcrecover) to generate thousand of possibilities.
+I recommend using [btcrecover](https://github.com/gurnec/btcrecover) to generate thousands or millions of possibilities.
 
 You can use something like this to create many passwords with the `--listpass` option:
 
@@ -40,12 +42,18 @@ You can of course do fancy shell stuff like this to prefix every password with a
     cat passwords.txt | sed 's/\(.*\)/@\1/' | python3 test-pw.py
 
 
+### Multiple threads
+
+The script itself is not multi threaded, so if you have 16 cores that you want to saturate, you need to make 16 different `passwords.txt` files and run 16 instances of this script.
+
+## Does it work?
+
+YES!  This script has already been used to recover a wallet containing 1 bitcoin, so it has already paid its dues  :-)
+
 ### TODO:
 
 * Allow passing parameters for wallet on commandline
-* Remove unused code / libraries (there is a lot)
-* Optimize!  Library code was just copy / pasted from Electrum repo
-* Consider improving `btcrecover` to support segwit + p2sh
+* Optimize!  Code (copied from Electrum tests) is very slow for this purpose.
 
 
 ## License
