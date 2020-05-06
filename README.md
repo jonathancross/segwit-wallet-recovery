@@ -1,3 +1,12 @@
+# Note: This project is now obsolete.
+
+#### Instead, please use the forked & revived [btcrecover](https://github.com/3rdIteration/btcrecover) -- which now supports SegWit!
+
+
+
+-------------------------------------------
+
+
 # Pass phrase tester for BIP39 SegWit-P2SH wallets
 
 A script which can be used for SegWit bitcoin wallet recovery.
